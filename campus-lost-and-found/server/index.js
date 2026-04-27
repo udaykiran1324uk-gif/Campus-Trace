@@ -182,10 +182,7 @@ app.post('/api/reset-password', async (req, res) => {
 });
 
 // Handle any requests that don't match the API routes (Routing fallback)
-app.get('*', (req, res) => {
-  if (req.path.startsWith('/api')) {
-    return res.status(404).json({ error: 'API endpoint not found' });
-  }
+app.get(/^(?!\/api).+/, (req, res) => {
   res.sendFile(path.join(__dirname, '../client/build', 'index.html'));
 });
 
