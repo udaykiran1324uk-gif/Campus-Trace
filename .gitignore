@@ -1,0 +1,9 @@
+node_modules/
+.env
+client/node_modules/
+server/node_modules/
+client/build/
+serviceAccountKey.json
+server/serviceAccountKey.json
+.DS_Store
+Thumbs.db
