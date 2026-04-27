@@ -1,0 +1,24 @@
+# Dependencies
+node_modules/
+client/node_modules/
+server/node_modules/
+
+# Production Build
+client/build/
+
+# Sensitive Keys (NEVER COMMIT THESE)
+.env
+client/.env
+server/.env
+serviceAccountKey.json
+server/serviceAccountKey.json
+
+# Logs & OS Files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.DS_Store
+Thumbs.db
+
+# Local Uploads
+server/uploads/
