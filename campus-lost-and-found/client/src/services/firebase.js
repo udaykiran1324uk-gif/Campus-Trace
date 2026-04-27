@@ -12,14 +12,23 @@ const firebaseConfig = {
   appId: process.env.REACT_APP_FIREBASE_APP_ID
 };
 
-const app = initializeApp(firebaseConfig);
-export const auth = getAuth(app);
-export const db = getFirestore(app);
+let app;
+try {
+  if (!firebaseConfig.apiKey) {
+    console.warn("Firebase API Key is missing. Check your .env file or Render environment variables.");
+  }
+  app = initializeApp(firebaseConfig);
+} catch (error) {
+  console.error("Firebase initialization failed:", error);
+}
+
+export const auth = app ? getAuth(app) : null;
+export const db = app ? getFirestore(app) : null;
 const storageBucket = (firebaseConfig.storageBucket || '')
   .replace(/^gs:\/\//, '')
   .replace(/^https?:\/\//, '')
   .replace(/\/+$/, '');
-export const storage = storageBucket
-  ? getStorage(app, `gs://${storageBucket}`)
-  : getStorage(app);
+export const storage = app 
+  ? (storageBucket ? getStorage(app, `gs://${storageBucket}`) : getStorage(app))
+  : null;
 export default app;

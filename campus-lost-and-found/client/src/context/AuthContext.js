@@ -12,6 +12,11 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!auth || !db) {
+      console.error("Auth or DB not initialized. Check Firebase config.");
+      setLoading(false);
+      return;
+    }
     let unsubscribeProfile = null;
 
     const unsubscribeAuth = onAuthStateChanged(auth, (firebaseUser) => {
