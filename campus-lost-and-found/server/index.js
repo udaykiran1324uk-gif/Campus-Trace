@@ -86,7 +86,7 @@ if (serviceAccountFromEnv) {
 }
 
 app.use(cors({
-  origin: '*',
+  origin: 'https://campus-trace-gx1m.onrender.com',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
 }));
