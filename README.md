@@ -40,5 +40,9 @@ I have automated the environment startup to make it as easy as possible to get r
 
 ### Option 2: Using the Terminal
 If you prefer the command line, simply run the following command from the root folder:
-```bash
+
+Navigate to the correct folder:
+Run in terminal
+cd "C:\Users\udayk\web projects\Campus-Trace\campus-lost-and-found"
+Start the website:
 npm run dev
