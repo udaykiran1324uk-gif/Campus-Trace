@@ -5,17 +5,7 @@ import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Camera, MapPin, Tag, Loader2, AlertCircle, X, FileText, CheckCircle2, CloudUpload } from 'lucide-react';
-
-const API_BASE_URL = (() => {
-  const configuredUrl = process.env.REACT_APP_API_URL;
-  if (typeof window !== 'undefined') {
-    const isLocalHost = ['localhost', '127.0.0.1'].includes(window.location.hostname);
-    if (isLocalHost) {
-      return 'http://localhost:5000';
-    }
-  }
-  return configuredUrl || 'http://localhost:5000';
-})();
+import { API_BASE_URL } from '../utils/api';
 
 const PostItem = () => {
   const { user } = useAuth();

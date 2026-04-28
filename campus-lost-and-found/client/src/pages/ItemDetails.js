@@ -5,31 +5,7 @@ import { doc, getDoc, addDoc, collection, query, where, getDocs, serverTimestamp
 import { useAuth } from '../context/AuthContext';
 import { MapPin, Calendar, User, MessageCircle, AlertCircle, CheckCircle } from 'lucide-react';
 import { DetailSkeleton } from '../components/Skeleton';
-
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
-const FALLBACK_IMAGE =
-  'https://images.unsplash.com/photo-1516321497487-e288fb19713f?q=80&w=1200&auto=format&fit=crop';
-
-const resolveImageUrl = (rawUrl) => {
-  if (!rawUrl) return FALLBACK_IMAGE;
-  const isClientLocal =
-    typeof window !== 'undefined' &&
-    ['localhost', '127.0.0.1'].includes(window.location.hostname);
-
-  try {
-    const parsed = new URL(rawUrl);
-    const isLocalImageHost = ['localhost', '127.0.0.1'].includes(parsed.hostname);
-    if (!isClientLocal && isLocalImageHost && parsed.pathname.startsWith('/uploads/')) {
-      return `${API_BASE_URL}${parsed.pathname}`;
-    }
-    return rawUrl;
-  } catch {
-    if (rawUrl.startsWith('/uploads/')) {
-      return `${API_BASE_URL}${rawUrl}`;
-    }
-    return rawUrl;
-  }
-};
+import { resolveImageUrl, FALLBACK_IMAGE } from '../utils/api';
 
 const ItemDetails = () => {
   const { id } = useParams();
