@@ -155,7 +155,12 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
     const localFileName = `${safeName}${ext}`;
     const localFilePath = path.join(localUploadDir, localFileName);
     fs.writeFileSync(localFilePath, req.file.buffer);
-    const imageUrl = `${req.protocol}://${req.get('host')}/uploads/${encodeURIComponent(localFileName)}`;
+    
+    // Ensure HTTPS on production for image links to avoid Mixed Content issues
+    const protocol = req.headers['x-forwarded-proto'] || req.protocol;
+    const host = req.get('host');
+    const imageUrl = `${protocol}://${host}/uploads/${encodeURIComponent(localFileName)}`;
+    
     return res.json({ imageUrl, objectPath: `uploads/${localFileName}`, storage: 'local' });
   } catch (error) {
     console.error('Upload API error:', error);
