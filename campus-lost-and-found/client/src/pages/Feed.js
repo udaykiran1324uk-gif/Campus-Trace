@@ -1,9 +1,34 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { db } from '../services/firebase';
-import { collection, query, orderBy, onSnapshot } from 'firebase/firestore';
+import { collection, query, onSnapshot } from 'firebase/firestore';
 import { Search, MapPin, Calendar, Tag, Filter, X } from 'lucide-react';
 import { FeedSkeleton } from '../components/Skeleton';
+
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+const FALLBACK_IMAGE =
+  'https://images.unsplash.com/photo-1516321497487-e288fb19713f?q=80&w=1200&auto=format&fit=crop';
+
+const resolveImageUrl = (rawUrl) => {
+  if (!rawUrl) return FALLBACK_IMAGE;
+  const isClientLocal =
+    typeof window !== 'undefined' &&
+    ['localhost', '127.0.0.1'].includes(window.location.hostname);
+
+  try {
+    const parsed = new URL(rawUrl);
+    const isLocalImageHost = ['localhost', '127.0.0.1'].includes(parsed.hostname);
+    if (!isClientLocal && isLocalImageHost && parsed.pathname.startsWith('/uploads/')) {
+      return `${API_BASE_URL}${parsed.pathname}`;
+    }
+    return rawUrl;
+  } catch {
+    if (rawUrl.startsWith('/uploads/')) {
+      return `${API_BASE_URL}${rawUrl}`;
+    }
+    return rawUrl;
+  }
+};
 
 const Feed = () => {
   const [items, setItems] = useState([]);
@@ -20,53 +45,7 @@ const Feed = () => {
     const q = query(collection(db, 'items'));
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      let itemsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      
-      // Inject System Sample Posts for professional look
-      if (itemsData.length === 0) {
-        itemsData = [{
-          id: 'sample-1',
-          title: 'Blue Laptop Sleeve',
-          description: 'Found a blue laptop sleeve (14-inch) in the library reading area. It has some stickers on it.',
-          location: 'Main Library',
-          category: 'Accessories',
-          type: 'found',
-          userName: 'Sarah Jenkins',
-          imageUrl: 'https://images.unsplash.com/photo-1544377193-33dcf4d68fb5?q=80&w=1932&auto=format&fit=crop',
-          createdAt: { seconds: Date.now() / 1000 }
-        }, {
-          id: 'sample-2',
-          title: 'Lost Calculator (FX-991EX)',
-          description: 'Left my calculator in Block A Room 302 after the morning exam. It has my initials on the back.',
-          location: 'Block A',
-          category: 'Electronics',
-          type: 'lost',
-          userName: 'Uday Kumar',
-          imageUrl: 'https://images.unsplash.com/photo-1574607383476-f517f220d35b?q=80&w=1974&auto=format&fit=crop',
-          createdAt: { seconds: (Date.now() / 1000) - 86400 }
-        }, {
-          id: 'sample-3',
-          title: 'Student ID Wallet',
-          description: 'Found a small black wallet containing a student ID and some cash near the sports complex.',
-          location: 'Sports Complex',
-          category: 'Documents',
-          type: 'found',
-          userName: 'Admin Assistant',
-          imageUrl: 'https://images.unsplash.com/photo-1627145072877-49ff02946c45?q=80&w=2070&auto=format&fit=crop',
-          createdAt: { seconds: (Date.now() / 1000) - 172800 }
-        }, {
-          id: 'sample-4',
-          title: 'Umbrella (Black)',
-          description: 'Lost my black umbrella in the auditorium during the seminar yesterday.',
-          location: 'Auditorium',
-          category: 'Personal Items',
-          type: 'lost',
-          userName: 'Michael Chen',
-          imageUrl: 'https://images.unsplash.com/photo-1517457373958-b7bdd058a548?q=80&w=2070&auto=format&fit=crop',
-          createdAt: { seconds: (Date.now() / 1000) - 259200 }
-        }];
-      }
-
+      const itemsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setItems(itemsData);
       setLoading(false);
     }, (error) => {
@@ -161,7 +140,15 @@ const Feed = () => {
           {filteredItems.map(item => (
             <div key={item.id} className="bg-white dark:bg-gray-800 rounded-3xl shadow-lg border border-gray-100 dark:border-gray-700 overflow-hidden hover:shadow-2xl hover:-translate-y-1.5 transition-all duration-300 group">
               <div className="relative h-56 overflow-hidden">
-                <img src={item.imageUrl} alt={item.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                <img
+                  src={resolveImageUrl(item.imageUrl)}
+                  alt={item.title}
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = FALLBACK_IMAGE;
+                  }}
+                />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 <span className={`absolute top-4 right-4 px-3.5 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg ${item.type === 'lost' ? 'bg-red-500 text-white' : 'bg-green-500 text-white'}`}>
                   {item.type}

@@ -6,6 +6,31 @@ import { useAuth } from '../context/AuthContext';
 import { MapPin, Calendar, User, MessageCircle, AlertCircle, CheckCircle } from 'lucide-react';
 import { DetailSkeleton } from '../components/Skeleton';
 
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+const FALLBACK_IMAGE =
+  'https://images.unsplash.com/photo-1516321497487-e288fb19713f?q=80&w=1200&auto=format&fit=crop';
+
+const resolveImageUrl = (rawUrl) => {
+  if (!rawUrl) return FALLBACK_IMAGE;
+  const isClientLocal =
+    typeof window !== 'undefined' &&
+    ['localhost', '127.0.0.1'].includes(window.location.hostname);
+
+  try {
+    const parsed = new URL(rawUrl);
+    const isLocalImageHost = ['localhost', '127.0.0.1'].includes(parsed.hostname);
+    if (!isClientLocal && isLocalImageHost && parsed.pathname.startsWith('/uploads/')) {
+      return `${API_BASE_URL}${parsed.pathname}`;
+    }
+    return rawUrl;
+  } catch {
+    if (rawUrl.startsWith('/uploads/')) {
+      return `${API_BASE_URL}${rawUrl}`;
+    }
+    return rawUrl;
+  }
+};
+
 const ItemDetails = () => {
   const { id } = useParams();
   const { user } = useAuth();
@@ -93,7 +118,15 @@ const ItemDetails = () => {
       <div className="bg-white rounded-2xl shadow-xl overflow-hidden flex flex-col md:flex-row">
         {/* Image Section */}
         <div className="md:w-1/2 h-64 md:h-auto relative">
-          <img src={item.imageUrl} alt={item.title} className="w-full h-full object-cover" />
+          <img
+            src={resolveImageUrl(item.imageUrl)}
+            alt={item.title}
+            className="w-full h-full object-cover"
+            onError={(e) => {
+              e.currentTarget.onerror = null;
+              e.currentTarget.src = FALLBACK_IMAGE;
+            }}
+          />
           <span className={`absolute top-4 left-4 px-4 py-1 rounded-full text-sm font-bold uppercase shadow-lg ${item.type === 'lost' ? 'bg-red-500 text-white' : 'bg-green-500 text-white'}`}>
             {item.type}
           </span>

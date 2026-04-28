@@ -6,7 +6,16 @@ import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Camera, MapPin, Tag, Loader2, AlertCircle, X, FileText, CheckCircle2, CloudUpload } from 'lucide-react';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+const API_BASE_URL = (() => {
+  const configuredUrl = process.env.REACT_APP_API_URL;
+  if (typeof window !== 'undefined') {
+    const isLocalHost = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+    if (isLocalHost) {
+      return 'http://localhost:5000';
+    }
+  }
+  return configuredUrl || 'http://localhost:5000';
+})();
 
 const PostItem = () => {
   const { user } = useAuth();
@@ -116,7 +125,6 @@ const PostItem = () => {
       fileForm.append('fileNameBase', `${Date.now()}_${user.uid}`);
 
       const uploadResponse = await axios.post(`${API_BASE_URL}/api/upload`, fileForm, {
-        headers: { 'Content-Type': 'multipart/form-data' },
         timeout: 45000,
         onUploadProgress: (progressEvent) => {
           if (!progressEvent.total) return;

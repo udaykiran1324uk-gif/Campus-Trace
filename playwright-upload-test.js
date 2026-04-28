@@ -1,7 +1,7 @@
 const { chromium } = require('playwright');
 
 const TARGET_URL = 'http://localhost:3000';
-const IMAGE_PATH = 'C:/Users/udayk/web projects/photo.JPG';
+const IMAGE_PATH = 'C:/Users/udayk/web projects/Cooling Glasses.jpeg';
 
 (async () => {
   const browser = await chromium.launch({ headless: false, slowMo: 80 });

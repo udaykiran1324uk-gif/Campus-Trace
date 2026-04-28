@@ -4,6 +4,31 @@ import { collection, query, where, onSnapshot, doc, updateDoc, writeBatch, getDo
 import { useAuth } from '../context/AuthContext';
 import { Check, X, User, Mail, MessageSquare, MapPin, Trash2 } from 'lucide-react';
 
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+const FALLBACK_IMAGE =
+  'https://images.unsplash.com/photo-1516321497487-e288fb19713f?q=80&w=1200&auto=format&fit=crop';
+
+const resolveImageUrl = (rawUrl) => {
+  if (!rawUrl) return FALLBACK_IMAGE;
+  const isClientLocal =
+    typeof window !== 'undefined' &&
+    ['localhost', '127.0.0.1'].includes(window.location.hostname);
+
+  try {
+    const parsed = new URL(rawUrl);
+    const isLocalImageHost = ['localhost', '127.0.0.1'].includes(parsed.hostname);
+    if (!isClientLocal && isLocalImageHost && parsed.pathname.startsWith('/uploads/')) {
+      return `${API_BASE_URL}${parsed.pathname}`;
+    }
+    return rawUrl;
+  } catch {
+    if (rawUrl.startsWith('/uploads/')) {
+      return `${API_BASE_URL}${rawUrl}`;
+    }
+    return rawUrl;
+  }
+};
+
 const MyPosts = () => {
   const { user } = useAuth();
   const [items, setItems] = useState([]);
@@ -118,7 +143,15 @@ const MyPosts = () => {
               <div className="flex flex-col md:flex-row">
                 {/* Item Summary */}
                 <div className="md:w-1/3 flex p-4 border-r border-gray-100 bg-gray-50">
-                  <img src={item.imageUrl} alt={item.title} className="w-24 h-24 rounded-lg object-cover shadow-sm" />
+                  <img
+                    src={resolveImageUrl(item.imageUrl)}
+                    alt={item.title}
+                    className="w-24 h-24 rounded-lg object-cover shadow-sm"
+                    onError={(e) => {
+                      e.currentTarget.onerror = null;
+                      e.currentTarget.src = FALLBACK_IMAGE;
+                    }}
+                  />
                   <div className="ml-4">
                     <h3 className="font-bold text-gray-800">{item.title}</h3>
                     <div className="flex items-center gap-1 text-xs text-gray-500 mt-1">

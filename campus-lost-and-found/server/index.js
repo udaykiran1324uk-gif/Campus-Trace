@@ -85,8 +85,20 @@ if (serviceAccountFromEnv) {
   }
 }
 
+const allowedOrigins = [
+  'https://campus-trace-gx1m.onrender.com',
+  'https://campus-trace-frontend.onrender.com',
+  'http://localhost:3000',
+  'http://127.0.0.1:3000'
+];
 app.use(cors({
-  origin: 'https://campus-trace-gx1m.onrender.com',
+  origin: (origin, callback) => {
+    // Allow same-origin/server-side calls and explicitly whitelisted browser origins.
+    if (!origin || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error(`CORS blocked for origin: ${origin}`));
+  },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
 }));
@@ -104,11 +116,6 @@ app.get('/api/health', (req, res) => {
 });
 
 app.post('/api/upload', upload.single('file'), async (req, res) => {
-  if (!firebaseAdminReady) {
-    return res.status(503).json({
-      error: 'Auth server not configured. Set FIREBASE project credentials and restart.'
-    });
-  }
   if (!req.file) {
     return res.status(400).json({ error: 'Missing file in request.' });
   }
@@ -117,7 +124,7 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
     const safeName = (req.body.fileNameBase || Date.now().toString()).replace(/[^a-zA-Z0-9_-]/g, '');
     const objectPath = `items/${safeName}${ext}`;
     // First choice: Firebase bucket upload
-    if (storageBucket) {
+    if (firebaseAdminReady && storageBucket) {
       try {
         const bucket = admin.storage().bucket(storageBucket);
         const file = bucket.file(objectPath);
@@ -140,6 +147,8 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
         }
         console.warn('Firebase bucket unavailable. Falling back to local file storage.');
       }
+    } else if (!firebaseAdminReady) {
+      console.warn('Firebase Admin not configured. Using local file storage fallback.');
     }
 
     // Fallback: local server storage so posting still works in development.
