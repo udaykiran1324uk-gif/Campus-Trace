@@ -139,9 +139,11 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
         });
         const encodedPath = encodeURIComponent(objectPath);
         const imageUrl = `https://firebasestorage.googleapis.com/v0/b/${storageBucket}/o/${encodedPath}?alt=media&token=${downloadToken}`;
+        console.log("SUCCESS: Image uploaded to Firebase Storage:", imageUrl);
         return res.json({ imageUrl, objectPath, storage: 'firebase' });
       } catch (bucketError) {
         const msg = String(bucketError?.message || '');
+        console.error("Firebase Storage Error:", msg);
         if (!msg.includes('specified bucket does not exist')) {
           throw bucketError;
         }
@@ -161,6 +163,7 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
     const host = req.get('host');
     const imageUrl = `${protocol}://${host}/uploads/${encodeURIComponent(localFileName)}`;
     
+    console.warn("WARNING: Using temporary Local Storage. Image will be deleted on next restart:", imageUrl);
     return res.json({ imageUrl, objectPath: `uploads/${localFileName}`, storage: 'local' });
   } catch (error) {
     console.error('Upload API error:', error);
